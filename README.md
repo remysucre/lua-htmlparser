@@ -70,7 +70,7 @@ Supported selectors are a subset of [jQuery's selectors][1]:
 Selectors can be combined; e.g. `".class:not([attribute]) element.class"`
 
 ## Element type
-All tree elements provide, apart from `:select` and `()`, the following accessors (a text node has `nil` as its tagname):
+All tree elements provide, apart from `:select` and `()`, the following accessors:
 
 ### Basic
 - `.name` the element's tagname
