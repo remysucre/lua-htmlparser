@@ -144,6 +144,7 @@ local function parse(text,limit) -- {{{
 	local index = 0
 	local root = ElementNode:new(index, str(text))
 	local node, descend, tpos, opentags = root, true, 1, {}
+	local lasttagend = nil -- position after last tag ended (nil = start of document)
 
 	while true do -- MainLoop {{{
 		if index == limit then -- {{{
@@ -160,6 +161,15 @@ local function parse(text,limit) -- {{{
 		dbg("[MainLoop]:#LINE# openstart=%s || tpos=%s || name=%s",str(openstart),str(tpos),str(name))
 		-- }}}
 		if not name then break end
+		-- Create text node for any text before this element {{{
+		if lasttagend and openstart and lasttagend < openstart then
+			index = index + 1
+			local textnode = ElementNode:new(index, nil, node, descend, lasttagend, openstart - 1)
+			textnode:close()
+			dbg("[MainLoop]:#LINE# Created text node from %d to %d", lasttagend, openstart - 1)
+		end
+		lasttagend = tpos + 1
+		-- }}}
 		-- Some more vars {{{
 		index = index + 1
 		local tag = ElementNode:new(index, str(name), (node or {}), descend, openstart, tpos)
@@ -236,6 +246,20 @@ local function parse(text,limit) -- {{{
 			if not closing or closing == "" then break end
 
 			tag = table.remove(opentags[closename] or {}) or tag -- kludges for the cases of closing void or non-opened tags
+
+			-- Create text node for any text before this closing tag {{{
+			if closing == "/" then
+				local tagstart = root._text:find("<", closestart)
+				if lasttagend and tagstart and lasttagend < tagstart then
+					index = index + 1
+					-- Text before closing tag should be a child of the tag being closed
+					local textnode = ElementNode:new(index, nil, tag, true, lasttagend, tagstart - 1)
+					textnode:close()
+					dbg("[TagCloseLoop]:#LINE# Created text node from %d to %d", lasttagend, tagstart - 1)
+				end
+				lasttagend = closeend + 1
+			end
+			-- }}}
 			closestart = root._text:find("<", closestart)
 			dbg("[TagCloseLoop]:#LINE# closestart=%s",str(closestart))
 			tag:close(closestart, closeend + 1)

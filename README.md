@@ -70,7 +70,7 @@ Supported selectors are a subset of [jQuery's selectors][1]:
 Selectors can be combined; e.g. `".class:not([attribute]) element.class"`
 
 ## Element type
-All tree elements provide, apart from `:select` and `()`, the following accessors:
+All tree elements provide, apart from `:select` and `()`, the following accessors (a text node have `nil` as its tagname):
 
 ### Basic
 - `.name` the element's tagname
@@ -96,7 +96,6 @@ All tree elements provide, apart from `:select` and `()`, the following accessor
 - Attribute values in selector strings cannot contain any spaces
 - The spaces before and after the `>` in a `parent > child` relation are mandatory 
 - `<!` elements (including doctype, comments, and CDATA) are not parsed; markup within CDATA is *not* escaped
-- Textnodes are no separate tree elements; in `local root = htmlparser.parse("<p>line1<br />line2</p>")`, `root.nodes[1]:getcontent()` is `"line1<br />line2"`, while `root.nodes[1].nodes[1].name` is `"br"`
 - No start or end tags are implied when [omitted](http://www.w3.org/TR/html5/syntax.html#optional-tags). Only the [void elements](http://www.w3.org/TR/html5/syntax.html#void-elements) should not have an end tag
 - No validation is done for tag or attribute names or nesting of element types. The list of void elements is in fact the only part specific to HTML
 

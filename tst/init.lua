@@ -38,11 +38,11 @@ function test_void()
 		<br >
 		<br />
 	]])
-	assert_equal(5, #tree.nodes, "top level")
+	assert_equal(9, #tree.nodes, "top level")
 	for _,n in ipairs(tree.nodes) do
 		if n.name == "p" then
-			assert_equal(4, #n.nodes, "deeper level")
-		else
+			assert_equal(9, #n.nodes, "deeper level")
+		elseif n.name then
 			assert_equal("br", n.name, "name")
 			assert_equal("", n:getcontent(), "content")
 		end
@@ -70,7 +70,7 @@ function test_class()
 		<n class="two three"></n>
 		<n ssalc="four"></n>
 	]])
-	assert_equal(3, #tree.nodes, "top level")
+	assert_equal(5, #tree.nodes, "top level")
 	assert_equal(1, #tree(".one"), ".one")
 	assert_equal(2, #tree(".two"), ".two")
 	assert_equal(2, #tree(".three"), ".three")
@@ -126,10 +126,10 @@ function test_attr_notequal()
 		<n a1></n>
 		<n></n>
 	]])
-	assert_equal(4, #tree.nodes, "top level")
-	assert_equal(3, #tree("[a1!='a1']"), "a1!='a1'")
-	assert_equal(4, #tree("[a1!='b1']"), "a1!='b1'")
-	assert_equal(3, #tree("[a1!='']"), "a1!=''")
+	assert_equal(7, #tree.nodes, "top level")
+	assert_equal(6, #tree("[a1!='a1']"), "a1!='a1'")
+	assert_equal(7, #tree("[a1!='b1']"), "a1!='b1'")
+	assert_equal(6, #tree("[a1!='']"), "a1!=''")
 	assert_equal(3, #tree("[a1!=]"), "a1!=")
 end
 
@@ -141,7 +141,7 @@ function test_attr_prefix_start_end()
 		<n a1="enen"></n>
 		<n></n>
 	]])
-	assert_equal(5, #tree.nodes, "top level")
+	assert_equal(9, #tree.nodes, "top level")
 	assert_equal(3, #tree("[a1|='en']"), "a1|='en'")
 	assert_equal(4, #tree("[a1^='en']"), "a1^='en'")
 	assert_equal(2, #tree("[a1$='en']"), "a1$='en'")
@@ -154,7 +154,7 @@ function test_attr_word()
 		<n a1></n>
 		<n></n>
 	]])
-	assert_equal(4, #tree.nodes, "top level")
+	assert_equal(7, #tree.nodes, "top level")
 	assert_equal(1, #tree("[a1~='two']"), "a1~='two'")
 	assert_equal(2, #tree("[a1~='three']"), "a1~='three'")
 	assert_equal(1, #tree("[a1~='four']"), "a1~='four'")
@@ -169,7 +169,7 @@ function test_attr_contains()
 		<n a1></n>
 		<n></n>
 	]])
-	assert_equal(6, #tree.nodes, "top level")
+	assert_equal(11, #tree.nodes, "top level")
 	assert_equal(2, #tree("[a1*='one']"), "a1*='one'")
 	assert_equal(2, #tree("[a1*='t']"), "a1*='t'")
 	assert_equal(1, #tree("[a1*='f']"), "a1*='f'")
@@ -238,11 +238,11 @@ function test_not()
 		</n>
 		<n a2></n>
 	]])
-	assert_equal(2, #tree.nodes, "top level")
-	assert_equal(1, #tree(":not([a1=1])"), ":not([a1=1])")
-	assert_equal(1, #tree(":not([a2])"), ":not([a2])")
-	assert_equal(1, #tree(":not(n)"), ":not(n)")
-	assert_equal(2, #tree(":not(m)"), ":not(m)")
+	assert_equal(3, #tree.nodes, "top level")
+	assert_equal(4, #tree(":not([a1=1])"), ":not([a1=1])")
+	assert_equal(4, #tree(":not([a2])"), ":not([a2])")
+	assert_equal(4, #tree(":not(n)"), ":not(n)")
+	assert_equal(5, #tree(":not(m)"), ":not(m)")
 end
 
 function test_combine()
@@ -256,7 +256,7 @@ function test_combine()
 		</e>
 		<n b="222"></n>
 	]])
-	assert_equal(2, #tree.nodes, "top level")
+	assert_equal(3, #tree.nodes, "top level")
 	assert_equal(2, #tree("e.c:not([a|='1']) > n[b*='2']"), "e.c:not([a|='1']) > n[b*='2']")
 	assert_equal(3, #tree("e.c:not([a|='1'])   n[b*='2']"), "e.c:not([a|='1'])   n[b*='2']")
 	assert_equal(1, #tree("#123 .c[b]"), "#123 .c[b]")
@@ -290,9 +290,14 @@ function test_order()
     assert_equal(i, tonumber(v:getcontent()), "n order")
   end
   local notn = tree(":not(n)")
-  assert_equal(4, #notn, "notn")
+  assert_equal(31, #notn, "notn")
+  local blanks = 0
   for i,v in pairs(notn) do
-    assert_equal(i, tonumber(v.name), "notn order")
+	if v.name then
+        assert_equal(i, blanks+tonumber(v.name), "notn order")
+	else
+		blanks = blanks + 1
+	end
   end
 end
 
@@ -327,5 +332,44 @@ function test_loop_limit()
 		<a id="unclosed>Element"> with unclosed attribute</a>
 		<div data-pic="aa<%=image_url%>bb" ></div>
 	]]) -- issue#42
-	assert(#tree.nodes==17)
+	assert(#tree.nodes==33)
+end
+
+function test_text_nodes()
+	local tree = htmlparser.parse("<p>line1<br />line2</p>")
+	assert_equal(1, #tree.nodes, "top level")
+	local p = tree.nodes[1]
+	assert_equal("p", p.name, "p element")
+	assert_equal(3, #p.nodes, "p should have 3 children")
+
+	assert_equal(nil, p.nodes[1].name, "first child should be text node")
+	assert_equal("line1", p.nodes[1]:gettext(), "first text content")
+
+	assert_equal("br", p.nodes[2].name, "second child should be br")
+
+	assert_equal(nil, p.nodes[3].name, "third child should be text node")
+	assert_equal("line2", p.nodes[3]:gettext(), "third text content")
+
+	assert_equal("line1<br />line2", p:getcontent(), "getcontent backward compatibility")
+end
+
+function test_text_nodes_whitespace()
+	local tree = htmlparser.parse("<p> <br/> </p>")
+	assert_equal(1, #tree.nodes, "top level")
+	local p = tree.nodes[1]
+	assert_equal(3, #p.nodes, "p should have 3 children including whitespace")
+	assert_equal(nil, p.nodes[1].name, "first should be whitespace text node")
+	assert_equal(nil, p.nodes[3].name, "third should be whitespace text node")
+end
+
+function test_text_nodes_selectors()
+	local tree = htmlparser.parse("<div>text<span>inner</span>more</div>")
+	local div = tree.nodes[1]
+
+	local all = div:select("*")
+	assert_equal(4, #all, "* selector should return 4 nodes (3 text + 1 span)")
+
+	local spans = div:select("span")
+	assert_equal(1, #spans, "span selector should return 1 node")
+	assert_equal("span", spans[1].name, "should be span element")
 end

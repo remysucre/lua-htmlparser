@@ -167,15 +167,19 @@ function ElementNode:close(closestart, closeend)
 		node = node.parent
 		if not node then break end
 		node.deepernodes:add(self)
-		insert(node.deeperelements, self.name, self)
-		for k in pairs(self.attributes) do
-			insert(node.deeperattributes, k, self)
-		end
-		if self.id then
-			insert(node.deeperids, self.id, self)
-		end
-		for _,v in ipairs(self.classes) do
-			insert(node.deeperclasses, v, self)
+		-- text nodes (name == nil) are added to deepernodes for * selector,
+		-- but not to other indexes since they can't be selected by element name, etc.
+		if self.name ~= nil then
+			insert(node.deeperelements, self.name, self)
+			for k in pairs(self.attributes) do
+				insert(node.deeperattributes, k, self)
+			end
+			if self.id then
+				insert(node.deeperids, self.id, self)
+			end
+			for _,v in ipairs(self.classes) do
+				insert(node.deeperclasses, v, self)
+			end
 		end
 	end
 end
