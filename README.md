@@ -83,7 +83,7 @@ All tree elements provide, apart from `:select` and `()`, the following accessor
 
 ### Other
 - `.index` sequence number of elements in order of appearance; root index is `0`
-- `:gettext()` the complete element text, starting with `"<tagname"` and ending with `"/>"` or `"</tagname>"`
+- `:getrawtext()` the complete element text, starting with `"<tagname"` and ending with `"/>"` or `"</tagname>"`
 - `.level` how deep the element is in the tree; root level is `0`
 - `.root` the root element of the tree; `root.root` is `root`
 - `.deepernodes` a [Set][1] containing all elements in the tree beneath this element, including this element's `.nodes`; `{}` if none

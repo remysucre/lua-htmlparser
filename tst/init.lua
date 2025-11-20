@@ -42,7 +42,7 @@ function test_void()
 	for _,n in ipairs(tree.nodes) do
 		if n.name == "p" then
 			assert_equal(9, #n.nodes, "deeper level")
-		elseif n.name then
+		elseif n.name ~= "_text" then
 			assert_equal("br", n.name, "name")
 			assert_equal("", n:getcontent(), "content")
 		end
@@ -293,7 +293,7 @@ function test_order()
   assert_equal(31, #notn, "notn")
   local blanks = 0
   for i,v in pairs(notn) do
-	if v.name then
+	if v.name ~= "_text" then
         assert_equal(i, blanks+tonumber(v.name), "notn order")
 	else
 		blanks = blanks + 1
@@ -342,13 +342,13 @@ function test_text_nodes()
 	assert_equal("p", p.name, "p element")
 	assert_equal(3, #p.nodes, "p should have 3 children")
 
-	assert_equal(nil, p.nodes[1].name, "first child should be text node")
-	assert_equal("line1", p.nodes[1]:gettext(), "first text content")
+	assert_equal("_text", p.nodes[1].name, "first child should be text node")
+	assert_equal("line1", p.nodes[1]:getrawtext(), "first text content")
 
 	assert_equal("br", p.nodes[2].name, "second child should be br")
 
-	assert_equal(nil, p.nodes[3].name, "third child should be text node")
-	assert_equal("line2", p.nodes[3]:gettext(), "third text content")
+	assert_equal("_text", p.nodes[3].name, "third child should be text node")
+	assert_equal("line2", p.nodes[3]:getrawtext(), "third text content")
 
 	assert_equal("line1<br />line2", p:getcontent(), "getcontent backward compatibility")
 end
@@ -358,8 +358,8 @@ function test_text_nodes_whitespace()
 	assert_equal(1, #tree.nodes, "top level")
 	local p = tree.nodes[1]
 	assert_equal(3, #p.nodes, "p should have 3 children including whitespace")
-	assert_equal(nil, p.nodes[1].name, "first should be whitespace text node")
-	assert_equal(nil, p.nodes[3].name, "third should be whitespace text node")
+	assert_equal("_text", p.nodes[1].name, "first should be whitespace text node")
+	assert_equal("_text", p.nodes[3].name, "third should be whitespace text node")
 end
 
 function test_text_nodes_selectors()
@@ -372,4 +372,10 @@ function test_text_nodes_selectors()
 	local spans = div:select("span")
 	assert_equal(1, #spans, "span selector should return 1 node")
 	assert_equal("span", spans[1].name, "should be span element")
+
+	local texts = div:select("_text")
+	assert_equal(3, #texts, "_text selector should return 3 text nodes")
+	for i, node in ipairs(texts) do
+		assert_equal("_text", node.name, "should be text node")
+	end
 end

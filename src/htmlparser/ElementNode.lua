@@ -106,7 +106,7 @@ function ElementNode:new(index, nameortext, node, descend, openstart, openend)
 	if not node then
 		instance.name = "root"
 		instance.root = instance
-		instance._text = nameortext
+		instance._rawtext = nameortext
 		local length = string.len(nameortext)
 		instance._openstart, instance._openend = 1, length
 		instance._closestart, instance._closeend = 1, length
@@ -124,20 +124,20 @@ function ElementNode:new(index, nameortext, node, descend, openstart, openend)
 	return setmetatable(instance, ElementNode.mt)
 end
 
-function ElementNode:gettext()
-	return string.sub(self.root._text, self._openstart, self._closeend)
+function ElementNode:getrawtext()
+	return string.sub(self.root._rawtext, self._openstart, self._closeend)
 end
 
-function ElementNode:settext(c)
-	self.root._text=c
+function ElementNode:setrawtext(c)
+	self.root._rawtext=c
 end
 
 function ElementNode:textonly()
-	return (self:gettext():gsub("<[^>]*>",""))
+	return (self:getrawtext():gsub("<[^>]*>",""))
 end
 
 function ElementNode:getcontent()
-	return string.sub(self.root._text, self._openend + 1, self._closestart - 1)
+	return string.sub(self.root._rawtext, self._openend + 1, self._closestart - 1)
 end
 
 function ElementNode:addattribute(k, v)
@@ -167,19 +167,15 @@ function ElementNode:close(closestart, closeend)
 		node = node.parent
 		if not node then break end
 		node.deepernodes:add(self)
-		-- text nodes (name == nil) are added to deepernodes for * selector,
-		-- but not to other indexes since they can't be selected by element name, etc.
-		if self.name ~= nil then
-			insert(node.deeperelements, self.name, self)
-			for k in pairs(self.attributes) do
-				insert(node.deeperattributes, k, self)
-			end
-			if self.id then
-				insert(node.deeperids, self.id, self)
-			end
-			for _,v in ipairs(self.classes) do
-				insert(node.deeperclasses, v, self)
-			end
+		insert(node.deeperelements, self.name, self)
+		for k in pairs(self.attributes) do
+			insert(node.deeperattributes, k, self)
+		end
+		if self.id then
+			insert(node.deeperids, self.id, self)
+		end
+		for _,v in ipairs(self.classes) do
+			insert(node.deeperclasses, v, self)
 		end
 	end
 end
